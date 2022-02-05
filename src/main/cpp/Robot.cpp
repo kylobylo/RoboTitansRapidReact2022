@@ -101,8 +101,14 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
+  
+  if (m_driveStick.GetY()>=0.1 ||m_driveStick.GetY()<=-0.1|| m_driveStick.GetX()>=0.1 || m_driveStick.GetX()<=-0.1) {
+    m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
+  }
 
+  if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
+    m_robotControl.ArcadeDrive(m_controlStick.GetY(), m_controlStick.GetX());
+  }
 }
 
 void Robot::TestPeriodic() {

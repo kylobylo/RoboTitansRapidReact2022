@@ -6,6 +6,7 @@
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
+
 #include <frc/Joystick.h>
 #include "rev/CANSparkMax.h"
 #include <frc/drive/DifferentialDrive.h>
@@ -36,6 +37,12 @@
   frc::Joystick m_driveStick{driveStickID};
   //Instantiate the control joystick
   frc::Joystick m_controlStick{controlStickID};
+=======
+
+#include <iostream>
+
+#include <frc/smartdashboard/SmartDashboard.h>
+
 
 void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
@@ -50,6 +57,7 @@ void Robot::RobotInit() {
 
   m_leftLaggingMotor.Follow(m_leftLeadingMotor);
   m_rightLaggingMotor.Follow(m_rightLeadingMotor);
+
 }
 
 /**

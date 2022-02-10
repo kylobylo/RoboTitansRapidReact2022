@@ -8,16 +8,23 @@
 #pragma once
 
 #include <string>
+
 #include <frc/Joystick.h>
 #include<rev/CANSparkMax.h>
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
-#include <frc/motorcontrol/PWMVictorSPX.h>
+
 
 class Robot : public frc::TimedRobot {
  public:
 
 
+
+#include <frc/TimedRobot.h>
+#include <frc/smartdashboard/SendableChooser.h>
+
+class Robot : public frc::TimedRobot {
+ public:
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;

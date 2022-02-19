@@ -10,63 +10,28 @@
 #include "Game.h"
 #include "Physics.h"
 
-#include <frc/Joystick.h>
-#include "rev/CANSparkMax.h"
-#include <frc/drive/DifferentialDrive.h>
 #include <iostream>
-#include <frc/smartdashboard/SmartDashboard.h>
-
-
-  //Put pin numbers as variables here.
-  unsigned const short driveStickID = 0;
-  unsigned const short controlStickID = 1;
-
-  //The Lead motor is the one in front of the lagging motor.
-  static unsigned const short leadRightSparkID = 1;
-  static unsigned const short laggingRightSparkID = 2;
-  static unsigned const short leadLeftSparkID = 3;
-  static unsigned const short laggingLeftSparkID = 4;
-  //Define Spark Max objects
-  rev::CANSparkMax m_leftLeadingMotor{leadLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  rev::CANSparkMax m_leftLaggingMotor{laggingLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  rev::CANSparkMax m_rightLeadingMotor{leadRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  rev::CANSparkMax m_rightLaggingMotor{laggingRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  //Only need to pass the leading motors to differential drive because the lagging motors
-  //will follow the leading motors.
-  frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
-  //Fine control differential drive object is needed for other joystick
-  frc::DifferentialDrive m_robotControl{m_leftLeadingMotor, m_rightLeadingMotor};
-  //Instantiate the left joystick
-  frc::Joystick m_driveStick{driveStickID};
-  //Instantiate the control joystick
-  frc::Joystick m_controlStick{controlStickID};
-=======
-
-#include <iostream>
-#include "math.h"
-
-#include "wpi/raw_ostream.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/Joystick.h>
 
 void alignRobotGoal(){ //Aligns the robot with the goal/target.
   if (Limelight::visibleTarget()){
-    double horizontal_angle_offset = cam_table->GetNumber("tz", 0.0);//-29.8 to +29.8 degrees
+    double horizontal_offset = Limelight::getInfo("tz");//-29.8 to +29.8 degrees;
 
     //TODO: Turn to align the robot with the goal.
   };
 }
 
-void onShotTriggered(){ //Shoots the ball (Should be called when shot is asked).
+void onShotTriggered(double goal_height){ //Shoots the ball (Should be called when shot is asked).
   //TODO: Determine which goal to shoot at (High or low).
   alignRobotGoal();
 
   if (Limelight::visibleTarget()){
     double goal_distance = Limelight::getDistance();
 
-    if (goal_distance > Physics::getMinDistance()){
-      double shot_velocity = Physics::getVelocity(goal_distance, /*goal height*/);
+    if (goal_distance > Physics::getMinDistance(goal_height)){
+      double shot_velocity = Physics::getVelocity(goal_distance, goal_height);
 
       double shot_rpm = Physics::getShotRPM(shot_velocity);
       //TODO: Spin the shooter to this speed.
@@ -78,21 +43,10 @@ void onShotTriggered(){ //Shoots the ball (Should be called when shot is asked).
   };
 };
 
-
 void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
-
-  m_leftLeadingMotor.RestoreFactoryDefaults();
-  m_leftLaggingMotor.RestoreFactoryDefaults();
-  m_rightLeadingMotor.RestoreFactoryDefaults();
-  m_rightLaggingMotor.RestoreFactoryDefaults();
-
-
-  m_leftLaggingMotor.Follow(m_leftLeadingMotor);
-  m_rightLaggingMotor.Follow(m_rightLeadingMotor);
-
 }
 
 /**
@@ -106,7 +60,7 @@ void Robot::RobotInit() {
 void Robot::RobotPeriodic() {
   // std::cout << Physics::getVelocity(100, top_goal) << std::endl;
 
-  onShotTriggered();
+  onShotTriggered(300);
 }
 
 /**
@@ -141,33 +95,11 @@ void Robot::AutonomousPeriodic() {
   }
 }
 
-void Robot::TeleopInit() {
-  //Drive with arcade style
-  
+void Robot::TeleopInit() {}
 
-}
+void Robot::TeleopPeriodic() {}
 
-void Robot::TeleopPeriodic() {
-  
-  if (m_driveStick.GetY()>=0.1 ||m_driveStick.GetY()<=-0.1|| m_driveStick.GetX()>=0.1 || m_driveStick.GetX()<=-0.1) {
-    m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
-  }
-
-  if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
-    m_robotControl.ArcadeDrive(m_controlStick.GetY(), m_controlStick.GetX());
-  }
-}
-
-void Robot::TestPeriodic() {
-  std::cout << m_driveStick.GetY();
-  std::cout << m_driveStick.GetX();
-  m_leftLeadingMotor.RestoreFactoryDefaults();
-  m_leftLaggingMotor.RestoreFactoryDefaults();
-  m_rightLeadingMotor.RestoreFactoryDefaults();
-  m_rightLaggingMotor.RestoreFactoryDefaults();
-  m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
-
-}
+void Robot::TestPeriodic() {}
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }

@@ -6,6 +6,9 @@
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
+#include "Limelight.h"
+#include "Game.h"
+#include "Physics.h"
 
 #include <frc/Joystick.h>
 #include "rev/CANSparkMax.h"
@@ -40,8 +43,40 @@
 =======
 
 #include <iostream>
+#include "math.h"
+
+#include "wpi/raw_ostream.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <frc/Joystick.h>
+
+void alignRobotGoal(){ //Aligns the robot with the goal/target.
+  if (Limelight::visibleTarget()){
+    double horizontal_angle_offset = cam_table->GetNumber("tz", 0.0);//-29.8 to +29.8 degrees
+
+    //TODO: Turn to align the robot with the goal.
+  };
+}
+
+void onShotTriggered(){ //Shoots the ball (Should be called when shot is asked).
+  //TODO: Determine which goal to shoot at (High or low).
+  alignRobotGoal();
+
+  if (Limelight::visibleTarget()){
+    double goal_distance = Limelight::getDistance();
+
+    if (goal_distance > Physics::getMinDistance()){
+      double shot_velocity = Physics::getVelocity(goal_distance, /*goal height*/);
+
+      double shot_rpm = Physics::getShotRPM(shot_velocity);
+      //TODO: Spin the shooter to this speed.
+
+    } else {
+      std::cout << "Robot is too close!" << std::endl;
+    };
+    
+  };
+};
 
 
 void Robot::RobotInit() {
@@ -68,7 +103,11 @@ void Robot::RobotInit() {
  * <p> This runs after the mode specific periodic functions, but before
  * LiveWindow and SmartDashboard integrated updating.
  */
-void Robot::RobotPeriodic() {}
+void Robot::RobotPeriodic() {
+  // std::cout << Physics::getVelocity(100, top_goal) << std::endl;
+
+  onShotTriggered();
+}
 
 /**
  * This autonomous (along with the chooser code above) shows how to select
@@ -83,8 +122,7 @@ void Robot::RobotPeriodic() {}
  */
 void Robot::AutonomousInit() {
   m_autoSelected = m_chooser.GetSelected();
-  // m_autoSelected = SmartDashboard::GetString("Auto Selector",
-  //     kAutoNameDefault);
+  // m_autoSelected = SmartDashboard::GetString("Auto Selector", kAutoNameDefault);
   std::cout << "Auto selected: " << m_autoSelected << std::endl;
 
   if (m_autoSelected == kAutoNameCustom) {
@@ -95,6 +133,7 @@ void Robot::AutonomousInit() {
 }
 
 void Robot::AutonomousPeriodic() {
+
   if (m_autoSelected == kAutoNameCustom) {
     // Custom Auto goes here
   } else {

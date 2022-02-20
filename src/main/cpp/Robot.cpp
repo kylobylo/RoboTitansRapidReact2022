@@ -6,14 +6,11 @@
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
+
 #include <frc/Joystick.h>
 #include "rev/CANSparkMax.h"
 #include <frc/drive/DifferentialDrive.h>
 #include <iostream>
-<<<<<<< Updated upstream
-=======
-#include <frc/DigitalInput.h>
->>>>>>> Stashed changes
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/PneumaticsControlModule.h>
 #include <frc/Compressor.h>
@@ -97,6 +94,12 @@ Robot robot;
   frc::Joystick m_driveStick{driveStickID};
   //Instantiate the control joystick
   frc::Joystick m_controlStick{controlStickID};
+=======
+
+#include <iostream>
+
+#include <frc/smartdashboard/SmartDashboard.h>
+
 
 void Robot::RobotInit() {
 
@@ -109,8 +112,6 @@ void Robot::RobotInit() {
   m_rightLeadingMotor.RestoreFactoryDefaults();
   m_rightLaggingMotor.RestoreFactoryDefaults();
 
-<<<<<<< Updated upstream
-=======
   //set climbing to false so that we can shoot
   climbing = false;
   intake = true;
@@ -122,10 +123,10 @@ void Robot::RobotInit() {
   m_armRelease.Set(false);
   m_armRetract.Set(false);
 
->>>>>>> Stashed changes
 
   m_leftLaggingMotor.Follow(m_leftLeadingMotor);
   m_rightLaggingMotor.Follow(m_rightLeadingMotor);
+
 }
 
 /**
@@ -179,6 +180,7 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
+
 
   
 
@@ -268,35 +270,14 @@ void Robot::startManualClimb() {
   }
 }
 
-<<<<<<< Updated upstream
-void Robot::TeleopInit() {
-  //Drive with arcade style
-  
 
-}
 
-void Robot::TeleopPeriodic() {
-  m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
-
-}
-
-void Robot::TestPeriodic() {
-  std::cout << m_driveStick.GetY();
-  std::cout << m_driveStick.GetX();
-  m_leftLeadingMotor.RestoreFactoryDefaults();
-  m_leftLaggingMotor.RestoreFactoryDefaults();
-  m_rightLeadingMotor.RestoreFactoryDefaults();
-  m_rightLaggingMotor.RestoreFactoryDefaults();
-  m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
-
-}
-=======
 
 void Robot::TestPeriodic() {
   
 
 }
->>>>>>> Stashed changes
+
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }

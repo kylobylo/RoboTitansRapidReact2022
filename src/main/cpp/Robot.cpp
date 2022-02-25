@@ -6,16 +6,17 @@
 /*----------------------------------------------------------------------------*/
 
 #include "Robot.h"
-
 #include <frc/Joystick.h>
 #include "rev/CANSparkMax.h"
 #include <frc/drive/DifferentialDrive.h>
 #include <iostream>
+#include <frc/DigitalInput.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/PneumaticsControlModule.h>
 #include <frc/Compressor.h>
 #include <frc/motorcontrol/Spark.h>
 #include <frc/Solenoid.h>
+#include <ctre/Phoenix.h>
 #include <frc/DigitalInput.h>
 
 
@@ -34,21 +35,18 @@ frc::Solenoid m_armRelease{frc::PneumaticsModuleType::CTREPCM, 3};
 frc::Solenoid m_armRetract{frc::PneumaticsModuleType::CTREPCM, 4};
 //The Lead motor is the one in front of the lagging motor.
 static unsigned const short leadRightSparkID = 1;
-static unsigned const short laggingRightSparkID = 2;
-static unsigned const short leadLeftSparkID = 3;
-static unsigned const short laggingLeftSparkID = 4;
-static unsigned const short shooterMotorID = 5;
-static unsigned const short climbingMotorID = 6;
-static unsigned const short intakeMotorID = 7;
+static unsigned const short leadLeftSparkID = 2;
+static unsigned const short shooterMotorID = 3;
+static unsigned const short climbingMotorID = 4;
+static unsigned const short intakeMotorID = 5;
+static unsigned const short indexBeltID = 6;
 //Define Spark and Spark Max objects
 rev::CANSparkMax m_leftLeadingMotor{leadLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
-rev::CANSparkMax m_leftLaggingMotor{laggingLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANSparkMax m_rightLeadingMotor{leadRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
-rev::CANSparkMax m_rightLaggingMotor{laggingRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANSparkMax m_shooterMotor{shooterMotorID, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANSparkMax m_climbingMotor{climbingMotorID, rev::CANSparkMax::MotorType::kBrushless};
-frc::Spark m_indexBelt{0};
 rev::CANSparkMax m_intakeMotor{intakeMotorID, rev::CANSparkMax::MotorType::kBrushless};
+VictorSPX m_indexBelt = {indexBeltID};
 //Only need to pass the leading motors to differential drive because the lagging motors
 //will follow the leading motors.
 frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
@@ -70,48 +68,20 @@ bool intake;
 Robot robot;
 
 
-
-  //Put pin numbers as variables here.
-  unsigned const short driveStickID = 0;
-  unsigned const short controlStickID = 1;
-
-  //The Lead motor is the one in front of the lagging motor.
-  static unsigned const short leadRightSparkID = 1;
-  static unsigned const short laggingRightSparkID = 2;
-  static unsigned const short leadLeftSparkID = 3;
-  static unsigned const short laggingLeftSparkID = 4;
-  //Define Spark Max objects
-  rev::CANSparkMax m_leftLeadingMotor{leadLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  rev::CANSparkMax m_leftLaggingMotor{laggingLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  rev::CANSparkMax m_rightLeadingMotor{leadRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  rev::CANSparkMax m_rightLaggingMotor{laggingRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
-  //Only need to pass the leading motors to differential drive because the lagging motors
-  //will follow the leading motors.
-  frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
-  //Fine control differential drive object is needed for other joystick
-  frc::DifferentialDrive m_robotControl{m_leftLeadingMotor, m_rightLeadingMotor};
-  //Instantiate the left joystick
-  frc::Joystick m_driveStick{driveStickID};
-  //Instantiate the control joystick
-  frc::Joystick m_controlStick{controlStickID};
-=======
-
-#include <iostream>
-
-#include <frc/smartdashboard/SmartDashboard.h>
-
-
 void Robot::RobotInit() {
 
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
+/*   m_shooterMotor.RestoreFactoryDefaults();
+  m_climbingMotor.RestoreFactoryDefaults();
+  m_intakeMotor.RestoreFactoryDefaults();
   m_leftLeadingMotor.RestoreFactoryDefaults();
-  m_leftLaggingMotor.RestoreFactoryDefaults();
-  m_rightLeadingMotor.RestoreFactoryDefaults();
-  m_rightLaggingMotor.RestoreFactoryDefaults();
+  m_rightLeadingMotor.RestoreFactoryDefaults(); */
 
+  //Make sure that the victor is not driving
+  m_indexBelt.Set(ControlMode::PercentOutput, (0));
   //set climbing to false so that we can shoot
   climbing = false;
   intake = true;
@@ -124,9 +94,6 @@ void Robot::RobotInit() {
   m_armRetract.Set(false);
 
 
-  m_leftLaggingMotor.Follow(m_leftLeadingMotor);
-  m_rightLaggingMotor.Follow(m_rightLeadingMotor);
-
 }
 
 /**
@@ -138,7 +105,7 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
-  shooterSpeed = m_controlStick.GetRawAxis(3);
+  //shooterSpeed = m_controlStick.GetRawAxis(3);
 }
 
 /**
@@ -181,17 +148,23 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
 
-
   
 
-  if (m_driveStick.GetY()>=0.1 || m_driveStick.GetY()<=-0.1 || m_driveStick.GetX()>=0.1 || m_driveStick.GetX()<=-0.1) {
-    m_robotDrive.ArcadeDrive(m_driveStick.GetY(), m_driveStick.GetX());
+  if (m_driveStick.GetY()>=0.1 || m_driveStick.GetY()<=-0.1 && m_driveStick.GetX()<=0.1 || m_driveStick.GetX()<=-0.1) {
+    m_robotDrive.ArcadeDrive(m_driveStick.GetX(), -1 * m_driveStick.GetY());
   }
 
   if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
-    m_robotControl.ArcadeDrive(m_controlStick.GetY(), m_controlStick.GetX());
+    m_robotControl.ArcadeDrive(m_controlStick.GetX(), -1 * m_controlStick.GetY());
   }
 
+  if (m_driveStick.GetY()>=0.1 || m_driveStick.GetY()<=-0.1 || m_driveStick.GetX()>=0.1 || m_driveStick.GetX()<=-0.1) {
+    m_robotDrive.ArcadeDrive(m_driveStick.GetX(), -1 * m_driveStick.GetY());
+  }
+
+  if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
+    m_robotControl.ArcadeDrive(m_controlStick.GetX(), -1 * m_controlStick.GetY());
+  }
   if (m_controlStick.GetRawAxis(2) >= 0.1 || m_controlStick.GetRawAxis(2) <= -0.1 && climbing == true) {
     m_climbingMotor.Set(m_controlStick.GetRawAxis(2));
   }
@@ -217,7 +190,7 @@ void Robot::TeleopPeriodic() {
   }
   while(m_controlStick.GetRawButtonPressed(sideButtonID)) {
     while(m_controlStick.GetRawButtonPressed(controlTriggerID)) {
-      m_indexBelt.Set(0.1);
+      m_indexBelt.Set(ControlMode::PercentOutput, (0.1));
     }
   
   if (m_controlStick.GetRawButtonPressed(modeButtonID) || climbing == true) {
@@ -271,13 +244,8 @@ void Robot::startManualClimb() {
 }
 
 
-
-
 void Robot::TestPeriodic() {
-  
-
 }
-
 
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }

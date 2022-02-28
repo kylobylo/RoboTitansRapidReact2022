@@ -24,8 +24,8 @@
 //Put pin numbers as variables here.
 unsigned const short driveStickID = 0;
 unsigned const short controlStickID = 1;
-unsigned const short controlTriggerID = 1;
-unsigned const short sideButtonID = 3;
+unsigned const short controlTriggerID = 0;
+unsigned const short sideButtonID = 2;
 unsigned const short modeButtonID = 7;
 unsigned const short ballInputDirection = 8;
 //Instantiate the solenoids for pneumatic control
@@ -37,19 +37,19 @@ frc::Solenoid m_armRetract{frc::PneumaticsModuleType::CTREPCM, 4};
 static unsigned const short leadRightSparkID = 1;
 static unsigned const short leadLeftSparkID = 2;
 static unsigned const short shooterMotorID = 3;
-static unsigned const short climbingMotorID = 4;
-static unsigned const short intakeMotorID = 5;
-static unsigned const short indexBeltID = 6;
+//static unsigned const short climbingMotorID = 4;
+static unsigned const short intakeMotorID = 6;
+static unsigned const short indexBeltID = 4;
 //Define Spark and Spark Max objects
 rev::CANSparkMax m_leftLeadingMotor{leadLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANSparkMax m_rightLeadingMotor{leadRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
 rev::CANSparkMax m_shooterMotor{shooterMotorID, rev::CANSparkMax::MotorType::kBrushless};
-rev::CANSparkMax m_climbingMotor{climbingMotorID, rev::CANSparkMax::MotorType::kBrushless};
+rev::CANSparkMax m_indexBelt{indexBeltID, rev::CANSparkMax::MotorType::kBrushed};
 rev::CANSparkMax m_intakeMotor{intakeMotorID, rev::CANSparkMax::MotorType::kBrushless};
-VictorSPX m_indexBelt = {indexBeltID};
+//VictorSPX m_indexBelt = {indexBeltID};
 //Only need to pass the leading motors to differential drive because the lagging motors
 //will follow the leading motors.
-frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
+//frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
 //Fine control differential drive object is needed for other joystick
 frc::DifferentialDrive m_robotControl{m_leftLeadingMotor, m_rightLeadingMotor};
 //Instantiate the left joystick
@@ -68,8 +68,9 @@ bool intake;
 Robot robot;
 
 
-void Robot::RobotInit() {
 
+void Robot::RobotInit() {
+ 
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
@@ -80,13 +81,11 @@ void Robot::RobotInit() {
   m_leftLeadingMotor.RestoreFactoryDefaults();
   m_rightLeadingMotor.RestoreFactoryDefaults(); */
 
-  //Make sure that the victor is not driving
-  m_indexBelt.Set(ControlMode::PercentOutput, (0));
   //set climbing to false so that we can shoot
   climbing = false;
   intake = true;
   
-  m_robotControl.SetMaxOutput(0.50);
+  //m_robotControl.SetMaxOutput(0.50);
 
   m_grab1.Set(true);
   m_grab2.Set(true);
@@ -105,7 +104,6 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
-  //shooterSpeed = m_controlStick.GetRawAxis(3);
 }
 
 /**
@@ -135,69 +133,61 @@ void Robot::AutonomousInit() {
 void Robot::AutonomousPeriodic() {
   if (m_autoSelected == kAutoNameCustom) {
     // Custom Auto goes here
+    m_robotControl.ArcadeDrive(0.0, -0.1);
   } else {
-    m_robotDrive.ArcadeDrive(0.1, 0.0);
+    m_robotControl.ArcadeDrive(0.0, -0.1);
   }
 }
 
 void Robot::TeleopInit() {
   //Drive with arcade style
-  
+  shooterSpeed = 0.0;
 
 }
 
 void Robot::TeleopPeriodic() {
 
-  
-
-  if (m_driveStick.GetY()>=0.1 || m_driveStick.GetY()<=-0.1 && m_driveStick.GetX()<=0.1 || m_driveStick.GetX()<=-0.1) {
-    m_robotDrive.ArcadeDrive(m_driveStick.GetX(), -1 * m_driveStick.GetY());
-  }
 
   if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
+    m_robotControl.ArcadeDrive(m_controlStick.GetTwist(), -1 * m_controlStick.GetY());
+  } 
+  /*if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetTwist()>=0.1 || m_controlStick.GetTwist()<=-0.1) {
     m_robotControl.ArcadeDrive(m_controlStick.GetX(), -1 * m_controlStick.GetY());
-  }
+  } */
 
-  if (m_driveStick.GetY()>=0.1 || m_driveStick.GetY()<=-0.1 || m_driveStick.GetX()>=0.1 || m_driveStick.GetX()<=-0.1) {
-    m_robotDrive.ArcadeDrive(m_driveStick.GetX(), -1 * m_driveStick.GetY());
-  }
-
-  if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
-    m_robotControl.ArcadeDrive(m_controlStick.GetX(), -1 * m_controlStick.GetY());
-  }
-  if (m_controlStick.GetRawAxis(2) >= 0.1 || m_controlStick.GetRawAxis(2) <= -0.1 && climbing == true) {
+ /* if (m_controlStick.GetRawAxis(2) >= 0.1 || m_controlStick.GetRawAxis(2) <= -0.1 && climbing == true) {
     m_climbingMotor.Set(m_controlStick.GetRawAxis(2));
-  }
+  }*/
 
-  if (m_controlStick.GetRawButtonPressed(ballInputDirection) && intake == false) {
-    intake = true;
-  }
-
-  if (m_controlStick.GetRawButtonPressed(ballInputDirection) && intake == true) {
+  if (m_controlStick.GetRawButtonPressed(8)) {
     intake = false;
+  }
+  if (m_controlStick.GetRawButtonReleased(8)) {
+    intake = true;
   }
   
   if (intake == true) {
-    m_intakeMotor.Set(1);
+    m_intakeMotor.Set(0.4);
+  }
+  if (m_driveStick.GetRawButtonPressed(3) && shooterSpeed != 0) {
+    shooterSpeed = shooterSpeed - 0.1; 
+  }
+  if (m_driveStick.GetRawButtonPressed(4) && shooterSpeed != 1) {
+    shooterSpeed = shooterSpeed + 0.1;
   }
 
-  if (intake == false) {
-    m_intakeMotor.Set(-1);
-  }
-
-  if (m_controlStick.GetRawButtonPressed(sideButtonID) && climbing == false) {
-    m_shooterMotor.Set(shooterSpeed);
-  }
-  while(m_controlStick.GetRawButtonPressed(sideButtonID)) {
-    while(m_controlStick.GetRawButtonPressed(controlTriggerID)) {
-      m_indexBelt.Set(ControlMode::PercentOutput, (0.1));
-    }
-  
-  if (m_controlStick.GetRawButtonPressed(modeButtonID) || climbing == true) {
+/*   if (m_controlStick.GetRawButtonPressed(modeButtonID) || climbing == true) {
     robot.startManualClimb();
+  } */
+  if (m_controlStick.GetRawButtonPressed(4)) {
+      m_indexBelt.Set(-0.5);
+    }
+  if (m_controlStick.GetRawButtonReleased(4)) {
+    m_indexBelt.Set(0.0);
   }
+  m_shooterMotor.Set(shooterSpeed);
+  
 
-}
 /*
   I am going to come back to this.  I wanted to get somehing working with no esxtra sensors so I shelved this part
   for the time being so as to facilitate quick coding and be able to test the robot sooner before scrimage
@@ -216,7 +206,7 @@ void Robot::TeleopPeriodic() {
     */
 }
 //Function for beggining climb phase
-void Robot::startClimb() {
+/*void Robot::startClimb() {
   if (climbing == false) {
     m_armRelease.Toggle();
   }
@@ -229,10 +219,10 @@ void Robot::startClimb() {
     m_grab2.Toggle();
     m_climbingMotor.Set(1);
   }
-}
+}*/
 
 //Function for beggining manual climb phase
-void Robot::startManualClimb() {
+/*void Robot::startManualClimb() {
   m_armRelease.Toggle();
   climbing = true;
   if(m_gripButton1.Get()) {
@@ -241,10 +231,12 @@ void Robot::startManualClimb() {
   if (m_gripButton2.Get()) {
     m_grab2.Toggle();
   }
-}
+}*/
 
 
 void Robot::TestPeriodic() {
+  m_indexBelt.Set(-1.0);
+  m_shooterMotor.Set(1.0);
 }
 
 #ifndef RUNNING_FRC_TESTS

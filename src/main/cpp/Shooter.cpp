@@ -1,6 +1,14 @@
 #include "Shooter.h"
 
-double Shooter::findTarget(double goal_height){//Finds the target.
+double min(double a, double b){
+    if (a < b){
+        return a;
+    }
+    return b;
+};
+
+//Finds the target.
+double Shooter::findTarget(double goal_height){
     if (Limelight::visibleTarget()){
         double goal_distance = Limelight::getDistance();
 
@@ -16,37 +24,40 @@ double Shooter::findTarget(double goal_height){//Finds the target.
     };
 };
 
-void Shooter::feedCargo(const rev::CANSparkMax& motor){//Feeds the cargo into the shooter.
-    //TODO: Feed the balls in.
+//Shoots the balls at the desired rpm
+void Shooter::shoot(rev::SparkMaxPIDController& pidController, rev::CANSparkMax& indexMotor, double rpm){
+    double setPoint = min(motorMaxRPM, rpm);// = motorMaxRPM*m_stick.GetY();
+
+    pidController.SetReference(setPoint, rev::ControlType::kVelocity);
 };
 
-void Shooter::alignTarget(const frc::DifferentialDrive& drive){//Aligns the robot with the goal.
+//Aligns the robot with the goal.
+void Shooter::alignTarget(frc::DifferentialDrive& robotDrive){
     if (Limelight::visibleTarget()){
     double horizontal_angle_offset = Limelight::getInfo("tz");//-29.8 to +29.8 degrees;
-    //TODO: Turn to align the robot with the goal.
+
+    robotDrive.ArcadeDrive(0, horizontal_angle_offset / 360);//---!!!Need to check if this works!!!---
   };
 };
 
-void Shooter::shootHigh(const frc::DifferentialDrive& drive, const rev::CANSparkMax& motor, bool lookForTarget = true){//Shoots the ball into the high goal.
-    Shooter::alignTarget(drive);
+//Shoots the ball into the high goal.
+void Shooter::shootHigh(frc::DifferentialDrive& robotDrive, rev::SparkMaxPIDController& pidController, rev::CANSparkMax& indexMotor, bool lookForTarget = true){
+    Shooter::alignTarget(robotDrive);
     if (lookForTarget){
         double shot_rpm = Shooter::findTarget(top_goal);
-        //TODO: Spin shooter to the rpm speed.
-        
+        shoot(pidController, indexMotor, shot_rpm);
     } else {
-        //TODO: Spin shooter to the high goal speed.
-        //TODO: Feed the balls in.
+        shoot(pidController, indexMotor, 0);
     };
 };
 
-void Shooter::shootLow(const frc::DifferentialDrive& drive, const rev::CANSparkMax& motor, bool lookForTarget = false){
-    Shooter::alignTarget(drive);
+//Shoots the ball into the low goal.
+void Shooter::shootLow(frc::DifferentialDrive& robotDrive, rev::SparkMaxPIDController& pidController, rev::CANSparkMax& indexMotor, bool lookForTarget = false){
+    Shooter::alignTarget(robotDrive);
     if (lookForTarget){
         double shot_rpm = Shooter::findTarget(low_goal);
-        //TODO: Spin shooter to the rpm speed.
-        //TODO: Feed the balls in.
+        shoot(pidController, indexMotor, shot_rpm);
     } else {
-        //TODO: Spin shooter to the low goal speed.
-        //TODO: Feed the balls in.
+        shoot(pidController, indexMotor, 30);
     };
 };

@@ -12,7 +12,6 @@
 #include<rev/CANSparkMax.h>
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
-#include <frc/motorcontrol/PWMVictorSPX.h>
 
 class Robot : public frc::TimedRobot {
  public:

@@ -18,6 +18,8 @@
 #include <frc/Solenoid.h>
 #include <ctre/Phoenix.h>
 #include <frc/DigitalInput.h>
+#include <fstream>
+#include "Debug.h"
 
 
 
@@ -67,6 +69,7 @@ bool intake;
 //Make a robot object
 Robot robot;
 
+dbg debug;
 
 
 void Robot::RobotInit() {
@@ -74,6 +77,13 @@ void Robot::RobotInit() {
   m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+
+
+  //Custom debug class records debug log in /home/lvuser/DEBUG.txt
+  //initialize and end are only run once and debug.out can be run as many times as you want.
+  debug.initialize();
+  debug.out("test");
+  debug.end();
 
 /*   m_shooterMotor.RestoreFactoryDefaults();
   m_climbingMotor.RestoreFactoryDefaults();
@@ -186,24 +196,6 @@ void Robot::TeleopPeriodic() {
     m_indexBelt.Set(0.0);
   }
   m_shooterMotor.Set(shooterSpeed);
-  
-
-/*
-  I am going to come back to this.  I wanted to get somehing working with no esxtra sensors so I shelved this part
-  for the time being so as to facilitate quick coding and be able to test the robot sooner before scrimage
-
-  if (m_controlStick.GetRawButtonPressed(controlTriggerID)) {
-    //use to shoot ball.
-    bool speed = true;
-    while(speed == true) {
-      m_shooterMotor.Set(shooterSpeed);
-      if(m_controlStick.GetRawButtonReleased(controlTriggerID)) {
-        speed = false;
-        m_indexBelt.Set(0.1);
-        
-      }
-    }
-    */
 }
 //Function for beggining climb phase
 /*void Robot::startClimb() {

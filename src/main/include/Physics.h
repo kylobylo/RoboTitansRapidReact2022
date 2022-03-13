@@ -1,12 +1,14 @@
 #pragma once
 
 #include "Game.h"
+#include "frc/smartdashboard/SmartDashboard.h"
 
 class Physics{
 public:
-    static double getVelocity(double distance, double goal);
-    static double getMinDistance(double goal);
-    static double getHeight(double velocity);
-    static double getTime(double height, double goal, double velocity);
-    static double getShotRPM(double velocity);
+    static double getVelocity(double, double);
+    static double getMinDistance(double);
+    static double getHeight(double);
+    static double getTime(double, double, double);
+    static double getShotRPM(double);
+    static bool checkDistance(double, double);
 };

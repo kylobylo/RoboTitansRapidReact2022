@@ -8,6 +8,8 @@
 #include "networktables/NetworkTableValue.h"
 #include "wpi/span.h"
 
+#include "frc/smartdashboard/SmartDashboard.h"
+
 #include <string>
 
 class Limelight{

@@ -5,8 +5,8 @@
 using namespace std;
 
 dbg internalDebug;
-bool dbg::initialize() {
-    internalDebug.file.open("/home/lvuser/DEBUG.txt");
+bool dbg::initialize(std::string y = "/home/lvuser/DEBUG.txt") {
+    internalDebug.file.open(y);
     internalDebug.iterations = 0;
     if(internalDebug.file.is_open()) {
         return true;
@@ -26,4 +26,7 @@ bool dbg::end() {
     } else {
         return false;
     }
+}
+dbg::~dbg() {
+    internalDebug.end();
 }

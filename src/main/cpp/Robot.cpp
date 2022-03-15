@@ -7,7 +7,7 @@
 
 #include "Robot.h"
 #include <frc/Joystick.h>
-#include "rev/CANSparkMax.h"
+#include <rev/CANSparkMax.h>
 #include <frc/drive/DifferentialDrive.h>
 #include <iostream>
 #include <frc/DigitalInput.h>
@@ -16,60 +16,14 @@
 #include <frc/Compressor.h>
 #include <frc/motorcontrol/Spark.h>
 #include <frc/Solenoid.h>
-#include <ctre/Phoenix.h>
 #include <frc/DigitalInput.h>
 #include <fstream>
 #include "Debug.h"
 
 
 
-//Put pin numbers as variables here.
-unsigned const short driveStickID = 0;
-unsigned const short controlStickID = 1;
-unsigned const short controlTriggerID = 0;
-unsigned const short sideButtonID = 2;
-unsigned const short modeButtonID = 7;
-unsigned const short ballInputDirection = 8;
-//Instantiate the solenoids for pneumatic control
-frc::Solenoid m_grab1{frc::PneumaticsModuleType::CTREPCM, 1};
-frc::Solenoid m_grab2{frc::PneumaticsModuleType::CTREPCM, 2};
-frc::Solenoid m_armRelease{frc::PneumaticsModuleType::CTREPCM, 3};
-frc::Solenoid m_armRetract{frc::PneumaticsModuleType::CTREPCM, 4};
-//The Lead motor is the one in front of the lagging motor.
-static unsigned const short leadRightSparkID = 1;
-static unsigned const short leadLeftSparkID = 2;
-static unsigned const short shooterMotorID = 3;
-//static unsigned const short climbingMotorID = 4;
-static unsigned const short intakeMotorID = 6;
-static unsigned const short indexBeltID = 4;
-//Define Spark and Spark Max objects
-rev::CANSparkMax m_leftLeadingMotor{leadLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
-rev::CANSparkMax m_rightLeadingMotor{leadRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
-rev::CANSparkMax m_shooterMotor{shooterMotorID, rev::CANSparkMax::MotorType::kBrushless};
-rev::CANSparkMax m_indexBelt{indexBeltID, rev::CANSparkMax::MotorType::kBrushed};
-rev::CANSparkMax m_intakeMotor{intakeMotorID, rev::CANSparkMax::MotorType::kBrushless};
-//VictorSPX m_indexBelt = {indexBeltID};
-//Only need to pass the leading motors to differential drive because the lagging motors
-//will follow the leading motors.
-//frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
-//Fine control differential drive object is needed for other joystick
-frc::DifferentialDrive m_robotControl{m_leftLeadingMotor, m_rightLeadingMotor};
-//Instantiate the left joystick
-frc::Joystick m_driveStick{driveStickID};
-//Instantiate the control joystick
-frc::Joystick m_controlStick{controlStickID};
-//Instantiate shooter speed variable for manipulation in Robot Periodic
-float shooterSpeed = 1.0;
-//create a Digital Input object to get grip detection
-frc::DigitalInput m_gripButton1{0};
-frc::DigitalInput m_gripButton2{1};
-//Create a mode toggle for manual climb control and a mode toggle for intake direction
-bool climbing;
-bool intake;
-//Make a robot object
-Robot robot;
 
-dbg debug;
+Robot robot;
 
 
 void Robot::RobotInit() {
@@ -85,22 +39,13 @@ void Robot::RobotInit() {
   debug.out("test");
   debug.end();
 
-/*   m_shooterMotor.RestoreFactoryDefaults();
-  m_climbingMotor.RestoreFactoryDefaults();
-  m_intakeMotor.RestoreFactoryDefaults();
-  m_leftLeadingMotor.RestoreFactoryDefaults();
-  m_rightLeadingMotor.RestoreFactoryDefaults(); */
-
   //set climbing to false so that we can shoot
   climbing = false;
   intake = true;
   
-  //m_robotControl.SetMaxOutput(0.50);
+  m_robotControl.SetMaxOutput(0.50);
 
-  m_grab1.Set(true);
-  m_grab2.Set(true);
-  m_armRelease.Set(false);
-  m_armRetract.Set(false);
+
 
 
 }
@@ -152,13 +97,17 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopInit() {
   //Drive with arcade style
   shooterSpeed = 0.0;
+  display.PutNumber("Shooter Speed", shooterSpeed);
+}
+
+void Robot::DisabledPeriodic() {
 
 }
 
 void Robot::TeleopPeriodic() {
 
 
-  if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetX()>=0.1 || m_controlStick.GetX()<=-0.1) {
+  if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetTwist()>=0.1 || m_controlStick.GetTwist()<=-0.1) {
     m_robotControl.ArcadeDrive(m_controlStick.GetTwist(), -1 * m_controlStick.GetY());
   } 
   /*if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetTwist()>=0.1 || m_controlStick.GetTwist()<=-0.1) {
@@ -179,51 +128,27 @@ void Robot::TeleopPeriodic() {
   if (intake == true) {
     m_intakeMotor.Set(0.4);
   }
-  if (m_driveStick.GetRawButtonPressed(3) && shooterSpeed != 0) {
+  if (m_driveStick.GetRawButtonPressed(3) && shooterSpeed != 0.0) {
     shooterSpeed = shooterSpeed - 0.1; 
+    display.PutNumber("Shooter Speed", shooterSpeed);
   }
-  if (m_driveStick.GetRawButtonPressed(4) && shooterSpeed != 1) {
+  if (m_driveStick.GetRawButtonPressed(4) && shooterSpeed != 1.0) {
     shooterSpeed = shooterSpeed + 0.1;
+    display.PutNumber("Shooter Speed", shooterSpeed);
   }
 
 /*   if (m_controlStick.GetRawButtonPressed(modeButtonID) || climbing == true) {
     robot.startManualClimb();
   } */
   if (m_controlStick.GetRawButtonPressed(4)) {
-      m_indexBelt.Set(-0.5);
+      m_indexBelt.Set(-1.0);
     }
   if (m_controlStick.GetRawButtonReleased(4)) {
     m_indexBelt.Set(0.0);
   }
   m_shooterMotor.Set(shooterSpeed);
 }
-//Function for beggining climb phase
-/*void Robot::startClimb() {
-  if (climbing == false) {
-    m_armRelease.Toggle();
-  }
-  climbing = true;
-  if(m_gripButton1.Get()) {
-    m_grab1.Toggle();
-    m_climbingMotor.Set(1);
-  }
-  if (m_gripButton2.Get()) {
-    m_grab2.Toggle();
-    m_climbingMotor.Set(1);
-  }
-}*/
 
-//Function for beggining manual climb phase
-/*void Robot::startManualClimb() {
-  m_armRelease.Toggle();
-  climbing = true;
-  if(m_gripButton1.Get()) {
-    m_grab1.Toggle();
-  }
-  if (m_gripButton2.Get()) {
-    m_grab2.Toggle();
-  }
-}*/
 
 
 void Robot::TestPeriodic() {

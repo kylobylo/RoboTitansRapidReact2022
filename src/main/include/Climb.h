@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Robot.h"
 #include <frc/Joystick.h>
 #include "rev/CANSparkMax.h"
@@ -11,13 +13,15 @@
 #include <frc/Solenoid.h>
 #include <frc/DigitalInput.h>
 #include <fstream>
-#include"Debug.h"
+//#include"Debug.h"
 
 class climb {
     public: 
         void doClimb(frc::Joystick* joy);
-        void prepareClimb(bool& climbingBool);
+        void prepareClimb(bool* climbingBool);
         void doManualClimb(frc::Joystick* joy);
+        void climbTest(frc::Joystick* joy);
+        //frc::SmartDashboard dashboard;
         
 
 
@@ -28,6 +32,7 @@ class climb {
         frc::DigitalInput handTwo{1};
         unsigned short grabs = 0;
         bool whichSwitch = false;
+        bool armGo = false;
 
         static unsigned const short climbingMotorID = 4;
         rev::CANSparkMax m_climbingMotor{climbingMotorID, rev::CANSparkMax::MotorType::kBrushless};

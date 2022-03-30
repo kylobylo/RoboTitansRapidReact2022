@@ -14,20 +14,20 @@
 #include <fstream>
 #include "Debug.h"
 
-frc::SmartDashboard dashboard;
-void climb::prepareClimb(bool& climbingBool) {
+
+void climb::prepareClimb(bool* climbingBool) {
 
     m_grab1.Set(true);
     m_grab2.Set(true);
     m_armRelease.Set(false);
     m_armRetract.Set(false);
 
-    dashboard.PutBoolean("Arm One Is Grabbed", !m_grab1.Get());
-    dashboard.PutBoolean("Arm Two Is Grabbed", !m_grab2.Get());
+    frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", m_grab1.Get());
+    frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", m_grab2.Get());
 
     //MUST come at the end
     m_armRelease.Toggle();
-    climbingBool = true;
+    *climbingBool = true;
 }
 
 //Must be used in TeleopPeriodic()
@@ -39,8 +39,8 @@ void climb::doClimb(frc::Joystick* joy) {
     if (joy->GetRawButtonPressed(3)) {
         m_armRetract.Toggle();
     }
-    dashboard.PutBoolean("Arm One Is Grabbed", !m_grab1.Get());
-    dashboard.PutBoolean("Arm Two Is Grabbed", !m_grab2.Get());
+    frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", m_grab1.Get());
+    frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", m_grab2.Get());
     if (grabs < 3) {
         if (m_grab1.Get() || m_grab2.Get() && !joy->GetRawButtonPressed(6)) {
             m_climbingMotor.Set(0.5);
@@ -70,8 +70,13 @@ void climb::doManualClimb(frc::Joystick* joy) {
     if (joy->GetRawButtonPressed(3)) {
         m_armRelease.Toggle();
     }
-    if (joy->GetRawButtonPressed(4)) {
+    if (joy->GetRawButtonPressed(4) && armGo == false) {
+        armGo = true;
         m_climbingMotor.Set(0.1);
+    }
+    if (joy->GetRawButtonPressed(4) && armGo == true) {
+        armGo = false;
+        m_climbingMotor.Set(0.0);
     }
     if (joy->GetRawButtonPressed(5)) {
         m_grab1.Toggle();
@@ -79,7 +84,22 @@ void climb::doManualClimb(frc::Joystick* joy) {
     if (joy->GetRawButtonPressed(6)) {
         m_grab2.Toggle();
     }
-    dashboard.PutBoolean("Arm One Is Grabbed", !m_grab1.Get());
-    dashboard.PutBoolean("Arm Two Is Grabbed", !m_grab2.Get());
 
+    frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", !m_grab1.Get());
+    frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", !m_grab2.Get());
+
+}
+void climb::climbTest(frc::Joystick* joy) {
+    if(joy->GetRawButton(3)){
+        m_climbingMotor.Set(0.1);
+    }
+    if(joy->GetRawButton(4)) {
+        m_armRelease.Toggle();
+    }
+    if(joy->GetRawButtonPressed(5)){
+        m_grab1.Toggle();
+    }
+    if(joy->GetRawButtonPressed(6)) {
+        m_grab2.Toggle();
+    }
 }

@@ -10,6 +10,7 @@
 #include <rev/CANSparkMax.h>
 #include <frc/drive/DifferentialDrive.h>
 #include <iostream>
+#include <cameraserver/CameraServer.h>
 #include <frc/DigitalInput.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/PneumaticsControlModule.h>
@@ -18,35 +19,80 @@
 #include <frc/Solenoid.h>
 #include <frc/DigitalInput.h>
 #include <fstream>
+#include <cscore_oo.h>
 #include "Debug.h"
+#include "Climb.h"
+#include "TankDrive.h"
+
+  //Put pin numbers as variables here.
+  unsigned const short driveStickID = 0;
+  unsigned const short controlStickID = 1;
+  unsigned const short controlTriggerID = 0;
+  unsigned const short sideButtonID = 2;
+  unsigned const short modeButtonID = 7;
+  //The Lead motor is the one in front of the lagging motor.
+  static unsigned const short leadRightSparkID = 1;
+  static unsigned const short leadLeftSparkID = 2;
+  static unsigned const short shooterMotorID = 3;
+  static unsigned const short intakeMotorID = 6;
+  //Define Spark and Spark Max objects
+  rev::CANSparkMax m_leftLeadingMotor{leadLeftSparkID, rev::CANSparkMax::MotorType::kBrushless};
+  rev::CANSparkMax m_rightLeadingMotor{leadRightSparkID, rev::CANSparkMax::MotorType::kBrushless};
+  rev::CANSparkMax m_shooterMotor{shooterMotorID, rev::CANSparkMax::MotorType::kBrushless};
+  rev::CANSparkMax m_intakeMotor{intakeMotorID, rev::CANSparkMax::MotorType::kBrushless};
+  frc::Spark m_indexBelt{1};
+  //will follow the leading motors.
+  frc::DifferentialDrive m_robotDrive{m_leftLeadingMotor, m_rightLeadingMotor};
+  //Fine control differential drive object is needed for other joystick
+  tankDrive m_robotControl(&m_leftLeadingMotor, &m_rightLeadingMotor);
+  //Instantiate the left joystick
+  frc::Joystick m_climbStick{driveStickID};
+  //Instantiate the control joystick
+  frc::Joystick m_controlStick{controlStickID};
+  //Instantiate shooter speed variable for manipulation in Robot Periodic
+  float shooterSpeed = 1.0;
+  //create a Digital Input object to get grip detection
+  frc::DigitalInput testInput{6};
+
+  //create compressor
+  frc::Compressor pcmCompressor{0, frc::PneumaticsModuleType::CTREPCM};
+
+  //Create a mode toggle for manual climb control and a mode toggle for intake direction
+  bool buttonEightPressed = false;
+  bool testBool = false;
+  bool intake;
+  bool climbing;
+
+  climb climbObject;
+
+  //Previous accelerometer values
+  double prevXAccel = 0;
+  double prevYAccel = 0;
+
+  //frc::SendableChooser testChoices;
 
 
-
-
-Robot robot;
 
 
 void Robot::RobotInit() {
- 
-  m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
+
+  frc::CameraServer::StartAutomaticCapture();
+  
+  m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);m_robotDrive.ArcadeDrive(m_controlStick.GetTwist(), -1 * m_controlStick.GetY());
   m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
   frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
 
 
   //Custom debug class records debug log in /home/lvuser/DEBUG.txt
   //initialize and end are only run once and debug.out can be run as many times as you want.
-  debug.initialize();
-  debug.out("test");
-  debug.end();
+  //debug.initialize("/home/lvuser/DEBUG.txt");
+  //debug.out("test");
+  //debug.end();
+  dbg debug;
 
   //set climbing to false so that we can shoot
   climbing = false;
   intake = true;
-  
-  m_robotControl.SetMaxOutput(0.50);
-
-
-
 
 }
 
@@ -59,6 +105,10 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
+
+  cs::CvSink cvSink = frc::CameraServer::GetVideo();
+
+  cs::CvSource outputStream = frc::CameraServer::PutVideo("Bottom_Of_Bot", 480, 480);
 }
 
 /**
@@ -88,16 +138,16 @@ void Robot::AutonomousInit() {
 void Robot::AutonomousPeriodic() {
   if (m_autoSelected == kAutoNameCustom) {
     // Custom Auto goes here
-    m_robotControl.ArcadeDrive(0.0, -0.1);
+    m_robotControl.drive(-0.1, 0);
   } else {
-    m_robotControl.ArcadeDrive(0.0, -0.1);
+    m_robotControl.drive(-0.1, 0);
   }
 }
 
 void Robot::TeleopInit() {
-  //Drive with arcade style
+  //Shooter speed is set so we don't start with a spinning motor.
   shooterSpeed = 0.0;
-  display.PutNumber("Shooter Speed", shooterSpeed);
+  frc::SmartDashboard::PutNumber("Shooter Speed", shooterSpeed);
 }
 
 void Robot::DisabledPeriodic() {
@@ -106,54 +156,43 @@ void Robot::DisabledPeriodic() {
 
 void Robot::TeleopPeriodic() {
 
+  //climber.prepareClimb(climbing);
 
+//NOT-YET-TESTED tankdrive class.  Easily replacible using frc::arcadedrive(might not be exaxt function call).
   if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetTwist()>=0.1 || m_controlStick.GetTwist()<=-0.1) {
-    m_robotControl.ArcadeDrive(m_controlStick.GetTwist(), -1 * m_controlStick.GetY());
+    m_robotDrive.ArcadeDrive(m_controlStick.GetTwist(),-1 * m_controlStick.GetY());
   } 
-  /*if (m_controlStick.GetY()>=0.1 || m_controlStick.GetY()<=-0.1 || m_controlStick.GetTwist()>=0.1 || m_controlStick.GetTwist()<=-0.1) {
-    m_robotControl.ArcadeDrive(m_controlStick.GetX(), -1 * m_controlStick.GetY());
-  } */
-
- /* if (m_controlStick.GetRawAxis(2) >= 0.1 || m_controlStick.GetRawAxis(2) <= -0.1 && climbing == true) {
-    m_climbingMotor.Set(m_controlStick.GetRawAxis(2));
-  }*/
-
-  if (m_controlStick.GetRawButtonPressed(8)) {
+//Toggles intake to reject balls
+  if (m_controlStick.GetRawButtonReleased(6) && intake == true) {
     intake = false;
   }
-  if (m_controlStick.GetRawButtonReleased(8)) {
+  if (m_controlStick.GetRawButtonReleased(6) && intake == false) {
     intake = true;
   }
-  
   if (intake == true) {
-    m_intakeMotor.Set(0.4);
-  }
-  if (m_driveStick.GetRawButtonPressed(3) && shooterSpeed != 0.0) {
-    shooterSpeed = shooterSpeed - 0.1; 
-    display.PutNumber("Shooter Speed", shooterSpeed);
-  }
-  if (m_driveStick.GetRawButtonPressed(4) && shooterSpeed != 1.0) {
-    shooterSpeed = shooterSpeed + 0.1;
-    display.PutNumber("Shooter Speed", shooterSpeed);
+    m_intakeMotor.Set(1);
   }
 
-/*   if (m_controlStick.GetRawButtonPressed(modeButtonID) || climbing == true) {
-    robot.startManualClimb();
-  } */
-  if (m_controlStick.GetRawButtonPressed(4)) {
-      m_indexBelt.Set(-1.0);
-    }
-  if (m_controlStick.GetRawButtonReleased(4)) {
-    m_indexBelt.Set(0.0);
+  //Sets shooter speed with (hopefully) working limits and output to smart dashboard.
+  if (m_climbStick.GetRawButtonPressed(3) && shooterSpeed != 0.0) {
+    shooterSpeed = shooterSpeed - 0.1; 
+    frc::SmartDashboard::PutNumber("Shooter Speed", shooterSpeed);
+  }
+  if (m_climbStick.GetRawButtonPressed(4) && shooterSpeed != 1.0) {
+    shooterSpeed = shooterSpeed + 0.1;
+    frc::SmartDashboard::PutNumber("Shooter Speed", shooterSpeed);
   }
   m_shooterMotor.Set(shooterSpeed);
+  if (m_controlStick.GetRawButton(4)) {
+    m_indexBelt.Set(1.0);
+  } else {
+    m_indexBelt.Set(0.0);
+  }
 }
 
 
-
 void Robot::TestPeriodic() {
-  m_indexBelt.Set(-1.0);
-  m_shooterMotor.Set(1.0);
+  climbObject.climbTest(&m_climbStick);
 }
 
 #ifndef RUNNING_FRC_TESTS

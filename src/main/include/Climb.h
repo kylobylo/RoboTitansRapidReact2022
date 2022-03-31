@@ -22,7 +22,7 @@ class climb {
         void doManualClimb(frc::Joystick* joy);
         void climbTest(frc::Joystick* joy);
         //frc::SmartDashboard dashboard;
-        
+        bool armGo = false;
 
 
 
@@ -32,14 +32,12 @@ class climb {
         frc::DigitalInput handTwo{1};
         unsigned short grabs = 0;
         bool whichSwitch = false;
-        bool armGo = false;
 
         static unsigned const short climbingMotorID = 4;
         rev::CANSparkMax m_climbingMotor{climbingMotorID, rev::CANSparkMax::MotorType::kBrushless};
         
         //Instantiate a group solenoids for pneumatic control
-        frc::Solenoid m_grab1{frc::PneumaticsModuleType::CTREPCM, 1};
-        frc::Solenoid m_grab2{frc::PneumaticsModuleType::CTREPCM, 2};
-        frc::Solenoid m_armRelease{frc::PneumaticsModuleType::CTREPCM, 3};
-        frc::Solenoid m_armRetract{frc::PneumaticsModuleType::CTREPCM, 4};
+        frc::Solenoid m_grab1{frc::PneumaticsModuleType::CTREPCM, 0};
+        frc::Solenoid m_grab2{frc::PneumaticsModuleType::CTREPCM, 1};
+        frc::Solenoid m_armRelease{frc::PneumaticsModuleType::CTREPCM, 2};
 };

@@ -20,7 +20,6 @@ void climb::prepareClimb(bool* climbingBool) {
     m_grab1.Set(true);
     m_grab2.Set(true);
     m_armRelease.Set(false);
-    m_armRetract.Set(false);
 
     frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", m_grab1.Get());
     frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", m_grab2.Get());
@@ -36,9 +35,7 @@ void climb::prepareClimb(bool* climbingBool) {
 //Need to make driver for lamprey absulute encoder
 void climb::doClimb(frc::Joystick* joy) {
     //False == grab1 while true == grab2
-    if (joy->GetRawButtonPressed(3)) {
-        m_armRetract.Toggle();
-    }
+
     frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", m_grab1.Get());
     frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", m_grab2.Get());
     if (grabs < 3) {
@@ -72,7 +69,7 @@ void climb::doManualClimb(frc::Joystick* joy) {
     }
     if (joy->GetRawButtonPressed(4) && armGo == false) {
         armGo = true;
-        m_climbingMotor.Set(0.1);
+        m_climbingMotor.Set(-0.1);
     }
     if (joy->GetRawButtonPressed(4) && armGo == true) {
         armGo = false;
@@ -93,7 +90,7 @@ void climb::climbTest(frc::Joystick* joy) {
     if(joy->GetRawButton(3)){
         m_climbingMotor.Set(0.1);
     }
-    if(joy->GetRawButton(4)) {
+    if(joy->GetRawButtonPressed(4)) {
         m_armRelease.Toggle();
     }
     if(joy->GetRawButtonPressed(5)){

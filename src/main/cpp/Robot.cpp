@@ -58,7 +58,7 @@
   frc::Compressor pcmCompressor{0, frc::PneumaticsModuleType::CTREPCM};
 
   //Create a mode toggle for manual climb control and a mode toggle for intake direction
-  bool buttonEightPressed = false;
+  bool buttonPressed = false;
   bool testBool = false;
   bool intake;
   bool climbing;
@@ -163,22 +163,29 @@ void Robot::TeleopPeriodic() {
     m_robotDrive.ArcadeDrive(m_controlStick.GetTwist(),-1 * m_controlStick.GetY());
   } 
 //Toggles intake to reject balls
-  if (m_controlStick.GetRawButtonReleased(6) && intake == true) {
-    intake = false;
-  }
-  if (m_controlStick.GetRawButtonReleased(6) && intake == false) {
-    intake = true;
+  if (m_controlStick.GetRawButtonReleased(8)) {
+    intake = !intake;
   }
   if (intake == true) {
     m_intakeMotor.Set(1);
+  } else {
+    m_intakeMotor.Set(0);
+  }
+  if (m_climbStick.GetRawButtonPressed(8)) {
+    climbObject.prepareClimb(&climbing);
   }
 
+  if (climbing == true) {
+    climbObject.doClimb(&m_climbStick);
+  }
+  
+
   //Sets shooter speed with (hopefully) working limits and output to smart dashboard.
-  if (m_climbStick.GetRawButtonPressed(3) && shooterSpeed != 0.0) {
+  if (m_climbStick.GetRawButtonPressed(3) && shooterSpeed != 0.0 && climbing == false) {
     shooterSpeed = shooterSpeed - 0.1; 
     frc::SmartDashboard::PutNumber("Shooter Speed", shooterSpeed);
   }
-  if (m_climbStick.GetRawButtonPressed(4) && shooterSpeed != 1.0) {
+  if (m_climbStick.GetRawButtonPressed(4) && shooterSpeed != 1.0 && climbing == false) {
     shooterSpeed = shooterSpeed + 0.1;
     frc::SmartDashboard::PutNumber("Shooter Speed", shooterSpeed);
   }

@@ -21,23 +21,26 @@ class climb {
         void prepareClimb(bool* climbingBool);
         void doManualClimb(frc::Joystick* joy);
         void climbTest(frc::Joystick* joy);
-        //frc::SmartDashboard dashboard;
         bool armGo = false;
 
 
 
 
     private:
-        frc::DigitalInput handOne{0};
-        frc::DigitalInput handTwo{1};
+        frc::DigitalInput handOne{1};
+        frc::DigitalInput handTwo{0};
         unsigned short grabs = 0;
-        bool whichSwitch = false;
+        bool whichSwitch = true;
+        bool lastHandOne = false;
+        bool lastHandTwo = false;
 
         static unsigned const short climbingMotorID = 4;
         rev::CANSparkMax m_climbingMotor{climbingMotorID, rev::CANSparkMax::MotorType::kBrushless};
+
+                rev::SparkMaxRelativeEncoder m_encoder = m_climbingMotor.GetEncoder();
         
         //Instantiate a group solenoids for pneumatic control
         frc::Solenoid m_grab1{frc::PneumaticsModuleType::CTREPCM, 0};
-        frc::Solenoid m_grab2{frc::PneumaticsModuleType::CTREPCM, 1};
+        frc::Solenoid m_grab2{frc::PneumaticsModuleType::CTREPCM, 3};
         frc::Solenoid m_armRelease{frc::PneumaticsModuleType::CTREPCM, 2};
 };

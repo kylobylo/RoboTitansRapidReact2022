@@ -43,16 +43,11 @@ void Robot::onShotRequest(double goalHeight){
     double goalDistance = Limelight::getDistance();
 
     steeringAdjust = Shooter::alignTarget();
-    m_robotDrive.ArcadeDrive(steeringAdjust, 0);
 
     // double shotVelocity = Physics::getVelocity(goalDistance, goalHeight);
     // shotRPM = Physics::getShotRPM(shotVelocity);
 
-    shotRPM = 2800;
-
-    if (shotRPM > motorMaxRPM) {
-      shotRPM = motorMaxRPM;
-    };
+    shotRPM = 2750;
     
     horizontalOffset = Limelight::getInfo("tx");
     
@@ -77,6 +72,8 @@ void Robot::onShotRequest(double goalHeight){
       if (speedReached) {
         indexActive = true;
       }
+    } else {
+      m_robotDrive.ArcadeDrive(steeringAdjust, 0);
     }
   }
 }

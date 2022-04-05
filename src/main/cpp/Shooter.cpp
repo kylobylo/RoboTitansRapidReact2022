@@ -1,5 +1,6 @@
 #include "Shooter.h"
 
+
 double prevHorizontialOffset = 0;
 
 double min(double a, double b){
@@ -37,4 +38,5 @@ double Shooter::alignTarget(){
     frc::SmartDashboard::PutNumber("Steering Adjust", steeringAdjust);
 
     return steeringAdjust;
+
 };

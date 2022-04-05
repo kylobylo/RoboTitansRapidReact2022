@@ -12,6 +12,7 @@
 #include <frc/DigitalInput.h>
 #include "Climb.h"
 #include <fstream>
+#include "Debug.h"
 
 
 void climb::prepareClimb(bool* climbingBool) {
@@ -33,37 +34,75 @@ void climb::prepareClimb(bool* climbingBool) {
 
 //Need to make driver for lamprey absulute encoder
 void climb::doClimb(frc::Joystick* joy) {
-    //False == grab1 while true == grab2
 
-    frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", m_grab1.Get());
-    frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", m_grab2.Get());
+frc::SmartDashboard::PutNumber("Climb Encoder", m_encoder.GetPosition());
+    if (joy->GetRawButton(1)) {
+        m_climbingMotor.Set(joy->GetY() * 0.5);
+    } else {
+        m_climbingMotor.Set(0);
+    }
+    if(joy->GetRawButtonPressed(2)) {
+        m_armRelease.Toggle();
 
+    }
+    if(joy->GetRawButtonPressed(5)){
+        m_grab1.Toggle();
+    }
+    if(joy->GetRawButtonPressed(6)) {
+        m_grab2.Toggle();
+    }
+    if (!handOne.Get()) {
+        debug.out("Hand One Button Has Been Pressed");
+    }
+    if (!handTwo.Get()) {
+        debug.out("Hand Two Button Has Been Pressed");
+    }
+    if (firstIterations <=10 && !handOne.Get()) {
+        firstIterations++;
+    } else {
+        firstIterations = 0;
+    }
+    if (secondIterations <=10 && !handTwo.Get()) {
+        secondIterations++;
+    } else {
+        secondIterations = 0;
+    }
+    if (!handOne.Get() && !lastHandOne && firstIterations > 10){
+        m_grab1.Set(false);
+        debug.out("Hand One has grabbed");
+        lastHandOne = !handOne.Get();
+    } else {
+        lastHandOne = !handOne.Get();  
+    }
+    if (!handTwo.Get() && !lastHandTwo && secondIterations > 10) {
+        m_grab2.Set(false);
+        debug.out("Hand Two has grabbed");
+        lastHandTwo = !handTwo.Get();
+    } else {
+        lastHandTwo = !handTwo.Get();
+    }
     if (grabs < 3) {
-        if (m_grab1.Get() || m_grab2.Get() && !joy->GetRawButtonPressed(6)) {
-            m_climbingMotor.Set(0.5);
-        }
-        if (handOne.Get()) {
-            m_grab1.Set(true);
-        }
-        if (handTwo.Get()) {
-            m_grab2.Set(true);
-        }
-        if (joy->GetRawButtonPressed(5) && m_grab2.Get() && m_grab1.Get()) {
+        if (joy->GetRawButtonPressed(3) && !m_grab2.Get() && !m_grab1.Get() && !handOne.Get() && !handTwo.Get()) {
             if(whichSwitch) {
-                m_grab2.Set(false);
-                whichSwitch = false;
+                m_grab2.Set(true);
+                whichSwitch = !whichSwitch;
                 grabs++;
             } else {
-                m_grab1.Set(false);
-                whichSwitch = true;
+                m_grab1.Set(true);
+                whichSwitch = !whichSwitch;
                 grabs++;
             }
         }
-    } else {
-        //Use encoder to get perpendicular to the ground.
     }
+    if (grabs < 3 || joy->GetRawButtonPressed(12)) {
+        debug.end();
+    }
+
+    frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", !m_grab1.Get());
+    frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", !m_grab2.Get());
 }
 void climb::doManualClimb(frc::Joystick* joy) {
+    frc::SmartDashboard::PutNumber("Climb Encoder", m_encoder.GetPosition());
     if (joy->GetRawButtonPressed(3)) {
         m_armRelease.Toggle();
     }
@@ -87,10 +126,18 @@ void climb::doManualClimb(frc::Joystick* joy) {
 
 }
 void climb::climbTest(frc::Joystick* joy) {
-    if(joy->GetRawButton(3)){
-        m_climbingMotor.Set(0.1);
+
+    frc::SmartDashboard::PutNumber("Climb Encoder", m_encoder.GetPosition());
+    if (joy->GetRawButton(1)) {
+        m_climbingMotor.Set(joy->GetY() * 0.5);
+    } else {
+        m_climbingMotor.Set(0);
     }
-    if(joy->GetRawButtonPressed(4)) {
+   /* if (joy->GetRawButton(1) {
+        armGo = false;
+        m_climbingMotor.Set(0.0);
+    }*/
+    if(joy->GetRawButtonPressed(2)) {
         m_armRelease.Toggle();
     }
     if(joy->GetRawButtonPressed(5)){
@@ -99,4 +146,31 @@ void climb::climbTest(frc::Joystick* joy) {
     if(joy->GetRawButtonPressed(6)) {
         m_grab2.Toggle();
     }
+
+    if (!handOne.Get() && !lastHandOne){
+        m_grab1.Set(false);
+        lastHandOne = !handOne.Get();
+    } else {
+        lastHandOne = !handOne.Get();  
+    }
+    if (!handTwo.Get() && !lastHandTwo) {
+        m_grab2.Set(false);
+        lastHandTwo = !handTwo.Get();
+    } else {
+        lastHandTwo = !handTwo.Get();
+    }
+    if (joy->GetRawButtonPressed(3) && !m_grab2.Get() && !m_grab1.Get() && !handOne.Get() && !handTwo.Get()) {
+        if(whichSwitch) {
+            m_grab2.Set(true);
+            whichSwitch = !whichSwitch;
+            grabs++;
+        } else {
+            m_grab1.Set(true);
+            whichSwitch = !whichSwitch;
+            grabs++;
+        }
+    }
+    frc::SmartDashboard::PutBoolean("Arm One Is Grabbed", !m_grab1.Get());
+    frc::SmartDashboard::PutBoolean("Arm Two Is Grabbed", !m_grab2.Get());
+
 }

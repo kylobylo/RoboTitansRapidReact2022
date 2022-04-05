@@ -1,10 +1,11 @@
 #pragma once
 
-#include <iostream>
 
+#include <iostream>
 #include "Game.h"
 #include "Physics.h"
 #include "Limelight.h"
+
 
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/drive/DifferentialDrive.h>
@@ -34,4 +35,5 @@ class Shooter{
 public:
     static void shoot(rev::SparkMaxPIDController&, double);
     static double alignTarget();
+
 };

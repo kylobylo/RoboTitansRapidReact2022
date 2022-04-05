@@ -43,6 +43,7 @@ void Limelight::toggleCamera(int mode){//0 is automatic, 1 is driver.
 };
 
 bool Limelight::visibleTarget(){//Returns if the target is visible
+
     int target_visible = Limelight::getInfo("tv") == 1;//1 and 0
 
     if (!target_visible){
@@ -53,6 +54,7 @@ bool Limelight::visibleTarget(){//Returns if the target is visible
 
     return target_visible;
     // return true;
+
 };
 
 double Limelight::getDistance(){//Calculates the horizontal distance with the limelight variables.

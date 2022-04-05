@@ -7,30 +7,31 @@
 
 #pragma once
 
-#include <string>
-
+#include <frc/Joystick.h>
+#include <rev/CANSparkMax.h>
+#include <frc/drive/DifferentialDrive.h>
+#include <iostream>
+#include <frc/DigitalInput.h>
+#include <frc/smartdashboard/SmartDashboard.h>
+#include <frc/PneumaticsControlModule.h>
+#include <frc/Compressor.h>
+#include <frc/motorcontrol/Spark.h>
+#include <frc/Solenoid.h>
+#include <frc/DigitalInput.h>
+#include <fstream>
+#include "Debug.h"
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
-
-#include <iostream>
-
+#include <rev/CANPIDController.h>
+#include <rev/CANSparkMax.h>
 #include <frc2/command/button/JoystickButton.h>
 #include <frc2/command/StartEndCommand.h>
 
-#include <frc/smartdashboard/SmartDashboard.h>
-#include <frc/drive/DifferentialDrive.h>
-#include <frc/PneumaticsControlModule.h>
-#include <frc/motorcontrol/Spark.h>
-#include <frc/DigitalInput.h>
-#include <frc/Compressor.h>
-#include <frc/Joystick.h>
-#include <frc/controller/PIDController.h>
 
-#include <rev/CANPIDController.h>
-#include <rev/CANSparkMax.h>
 
 class Robot : public frc::TimedRobot {
  public:
+
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;
@@ -38,6 +39,7 @@ class Robot : public frc::TimedRobot {
   void TeleopInit() override;
   void TeleopPeriodic() override;
   void TestPeriodic() override;
+  void DisabledPeriodic() override;
 
   void onShotRequest(double);
   

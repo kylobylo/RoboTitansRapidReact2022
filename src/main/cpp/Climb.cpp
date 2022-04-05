@@ -35,7 +35,11 @@ void climb::prepareClimb(bool* climbingBool) {
 //Need to make driver for lamprey absulute encoder
 void climb::doClimb(frc::Joystick* joy) {
 
-    frc::SmartDashboard::PutNumber("Climb Encoder", m_encoder.GetPosition());
+// <<<<<<< Test
+//     frc::SmartDashboard::PutNumber("Climb Encoder", m_encoder.GetPosition());
+// =======
+//   frc::SmartDashboard::PutNumber("Climb Encoder", m_encoder.GetPosition());
+// >>>>>>> Test
     if (joy->GetRawButton(1)) {
         m_climbingMotor.Set(joy->GetY() * 0.5);
     } else {

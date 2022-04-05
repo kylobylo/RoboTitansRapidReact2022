@@ -22,7 +22,6 @@ class climb {
         void doManualClimb(frc::Joystick* joy);
         void climbTest(frc::Joystick* joy);
         bool armGo = false;
-
         dbg debug;
 
 
@@ -44,5 +43,6 @@ class climb {
         //Instantiate a group solenoids for pneumatic control
         frc::Solenoid m_grab1{frc::PneumaticsModuleType::CTREPCM, 0};
         frc::Solenoid m_grab2{frc::PneumaticsModuleType::CTREPCM, 3};
+
         frc::Solenoid m_armRelease{frc::PneumaticsModuleType::CTREPCM, 2};
 };

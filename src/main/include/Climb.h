@@ -23,7 +23,7 @@ class climb {
         void climbTest(frc::Joystick* joy);
         bool armGo = false;
 
-
+        dbg debug;
 
 
     private:
@@ -33,6 +33,8 @@ class climb {
         bool whichSwitch = true;
         bool lastHandOne = false;
         bool lastHandTwo = false;
+        long long firstIterations = 0;
+        long long secondIterations = 0;
 
         static unsigned const short climbingMotorID = 4;
         rev::CANSparkMax m_climbingMotor{climbingMotorID, rev::CANSparkMax::MotorType::kBrushless};
